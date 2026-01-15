@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>火炬之光：无限 SS11 命运罗盘</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --ember-gold: #ffc107;
+            --ember-orange: #ff6f00;
+            --ember-red: #b71c1c;
+            --void-purple: #7b1fa2;
+            --bg-dark: #050505;
+            --panel-gradient: linear-gradient(180deg, #2d2d2d 0%, #1a1a1a 100%);
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'SimHei', sans-serif;
+            background-color: var(--bg-dark);
+            
+            /* --- 路径修改：使用相对路径 img/ --- */
+            background-image: url('img/背景.jpg'); 
+            
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #e0e0e0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* 顶部 Logo 区域 */
+        .logo-area {
+            width: 100%;
+            max-width: 600px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .season-logo {
+            width: auto;
+            max-width: 120px;
+            height: auto;
+            /* --- 路径修改 --- */
+            content: url('img/logo.ico');
+            filter: drop-shadow(0 0 10px rgba(255, 111, 0, 0.5));
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* 状态栏 */
+        .status-bar-container {
+            width: 90%;
+            max-width: 500px;
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 5px 10px;
+            backdrop-filter: blur(5px);
+        }
+
+        .status-item {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #ccc;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .highlight-text {
+            color: var(--ember-gold);
+            text-shadow: 0 0 5px rgba(255, 193, 7, 0.5);
+        }
+
+        /* 老虎机面板 */
+        .slot-machine-frame {
+            margin-top: 10px;
+            background: var(--panel-gradient);
+            padding: 8px;
+            border-radius: 8px;
+            border: 2px solid #8d6e63;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8), inset 0 0 10px rgba(0,0,0,0.5);
+            position: relative;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .slot-machine-frame::before {
+            content: ''; position: absolute; top: -5px; left: -5px; width: 20px; height: 20px;
+            border-top: 3px solid var(--ember-gold); border-left: 3px solid var(--ember-gold);
+        }
+        .slot-machine-frame::after {
+            content: ''; position: absolute; bottom: -5px; right: -5px; width: 20px; height: 20px;
+            border-bottom: 3px solid var(--ember-gold); border-right: 3px solid var(--ember-gold);
+        }
+
+        .slot-window {
+            display: flex;
+            gap: 4px;
+            background: #000;
+            padding: 5px;
+            border: 1px solid #3e2723;
+            border-radius: 4px;
+            overflow: hidden;
+            height: 140px;
+        }
+
+        .reel {
+            flex: 1;
+            background: linear-gradient(180deg, #181818 0%, #2a2a2a 50%, #181818 100%);
+            border-right: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px;
+            box-shadow: inset 0 0 15px #000;
+            overflow: hidden;
+        }
+        .reel:last-child { border-right: none; }
+
+        /* 老虎机图片样式 */
+        .slot-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; 
+            filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));
+            transform: scale(0.95);
+        }
+        
+        .placeholder-text {
+            color: #555;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .result-info {
+            margin-top: 10px;
+            text-align: center;
+            min-height: 90px;
+            opacity: 0;
+            transition: opacity 0.5s;
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .result-title {
+            font-size: 1.2rem;
+            color: var(--ember-gold);
+            text-shadow: 0 0 10px rgba(255, 111, 0, 0.8);
+            margin-bottom: 5px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .result-desc {
+            font-size: 0.85rem;
+            color: #bcaaa4;
+            line-height: 1.3;
+        }
+        
+        .result-img-preview {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            margin-bottom: 5px;
+            border: 1px solid #444;
+            background: #000;
+            border-radius: 4px;
+        }
+
+        /* 按钮样式 */
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            width: 90%;
+            max-width: 500px;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding-bottom: 40px;
+        }
+
+        .game-btn {
+            position: relative;
+            border: none;
+            outline: none;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #fff;
+            text-transform: uppercase;
+            cursor: pointer;
+            background: linear-gradient(180deg, #4e342e 0%, #3e2723 100%);
+            box-shadow: 0 4px 0 #271c19, 0 5px 10px rgba(0,0,0,0.5);
+            border-radius: 4px;
+            border: 1px solid #6d4c41;
+            transition: all 0.1s;
+            text-shadow: 0 1px 2px #000;
+            flex: 1 1 40%;
+            min-width: 140px;
+        }
+
+        .game-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #271c19, inset 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        .btn-earn {
+            background: linear-gradient(180deg, #2e7d32 0%, #1b5e20 100%);
+            border-color: #4caf50;
+            box-shadow: 0 4px 0 #0f3d13, 0 5px 10px rgba(0,0,0,0.5);
+        }
+        .btn-earn:active { box-shadow: 0 0 0 #0f3d13; }
+
+        .btn-reroll {
+            background: linear-gradient(180deg, #ff8f00 0%, #ff6f00 100%);
+            border-color: #ffca28;
+            box-shadow: 0 4px 0 #e65100, 0 5px 10px rgba(0,0,0,0.5);
+        }
+        .btn-reroll:active { box-shadow: 0 0 0 #e65100; }
+
+        .btn-confirm {
+            background: linear-gradient(180deg, #c62828 0%, #b71c1c 100%);
+            border-color: #ef5350;
+            box-shadow: 0 4px 0 #7f0000, 0 5px 10px rgba(0,0,0,0.5);
+            flex-basis: 100%;
+            font-size: 1.2rem;
+            margin-top: 10px;
+        }
+        .btn-confirm:active { box-shadow: 0 0 0 #7f0000; }
+
+        .game-btn:disabled {
+            background: #222; border-color: #444; color: #666;
+            box-shadow: none; cursor: not-allowed; transform: none;
+        }
+
+        /* 弹窗 */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+            backdrop-filter: blur(5px);
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+
+        .modal-content {
+            background: #1e1e1e;
+            background-image: linear-gradient(rgba(30,30,30,0.95), rgba(30,30,30,0.95)), url('https://placehold.co/400x400/222/333?text=Texture');
+            width: 90%; max-width: 450px; padding: 2px; border-radius: 4px;
+            box-shadow: 0 0 30px rgba(255, 111, 0, 0.3);
+            transform: scale(0.9); transition: transform 0.3s;
+        }
+        .modal-inner {
+            border: 1px solid var(--ember-gold); padding: 20px;
+            border-radius: 2px; position: relative;
+        }
+        .modal-overlay.active .modal-content { transform: scale(1); }
+
+        /* 契约 */
+        .contract-paper {
+            background: #e0cda5;
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZTBjZGE1Ii8+CjxwYXRoIGQ9Ik0wIDBMNCA0Wk00IDBMMCA0WiIgc3Ryb2tlPSIjZDdiOTg4IiBzdHJva2Utd2lkdGg9IjAuMSIvPgo8L3N2Zz4=');
+            color: #3e2723; padding: 20px; font-family: 'Courier New', monospace;
+            margin: 15px 0; border: 5px double #3e2723; transform: rotate(-1deg);
+            position: relative; box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 游戏区域 */
+        .game-area {
+            height: 350px; background: #000; border: 2px solid #555;
+            position: relative; overflow: hidden; margin: 15px 0; cursor: crosshair;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        /* 目标样式 (捕捉初火) */
+        .moving-target {
+            position: absolute;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: cover; 
+            cursor: pointer; 
+            z-index: 100;
+            will-change: transform; 
+        }
+
+        /* 符文记忆样式 (图片版) */
+        .rune-display {
+            width: 45px; height: 45px; 
+            border: 1px solid #555;
+            display: flex; align-items: center; justify-content: center;
+            background: #1a1a1a; 
+            border-radius: 4px; 
+            transition: all 0.1s;
+            padding: 2px;
+            overflow: hidden;
+        }
+        .rune-display img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            opacity: 0.5;
+            transition: opacity 0.1s;
+        }
+        
+        .rune-display.lit {
+            border-color: #fff; background: #444;
+            box-shadow: 0 0 15px #ff6f00; transform: scale(1.1);
+        }
+        .rune-display.lit img {
+            opacity: 1;
+            filter: drop-shadow(0 0 5px #fff);
+        }
+
+        .spinning .reel img { 
+            filter: blur(5px); 
+            transform: scale(0.9) translateY(20px);
+            transition: filter 0.1s;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="logo-area">
+        <img class="season-logo" src="" alt="S11 Logo">
+    </div>
+
+    <div class="status-bar-container">
+        <div class="status-item">
+            <span>😈 痛苦等级:</span>
+            <span class="highlight-text" id="diffDisplay">Lv.1</span>
+        </div>
+        <div class="status-item">
+            <span>🪙 命运代币:</span>
+            <span class="highlight-text" id="tokenCount">0</span>
+            <span>/ 1</span>
+        </div>
+    </div>
+
+    <div class="slot-machine-frame">
+        <div class="slot-window" id="slotMachine">
+            <div class="reel" id="reel1"><span class="placeholder-text">?</span></div>
+            <div class="reel" id="reel2"><span class="placeholder-text">?</span></div>
+            <div class="reel" id="reel3"><span class="placeholder-text">?</span></div>
+        </div>
+
+        <div class="result-info" id="resultInfo">
+            <img id="resultImg" class="result-img-preview" src="" style="display:none;">
+            <div class="result-title" id="resultTitle"></div>
+            <div class="result-desc" id="resultDesc">命运的齿轮等待转动...<br>请先赚取一枚代币。</div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="game-btn btn-earn active" id="btnEarn" onclick="startMiniGame()">
+            ⚔️ 赚取 1 代币
+        </button>
+        <button class="game-btn btn-reroll" id="btnReroll" onclick="spinSlot()" disabled>
+            ↻ 逆天改命 (1币)
+        </button>
+        <button class="game-btn btn-confirm" id="btnConfirm" onclick="showContract()" disabled>
+            🔥 就决定是它了！
+        </button>
+    </div>
+
+    <div class="modal-overlay" id="contractModal">
+        <div class="modal-content">
+            <div class="modal-inner">
+                <h2 style="color:var(--ember-gold); margin-top:0; text-align:center;">S11 灵魂契约</h2>
+                <div class="contract-paper" id="captureTarget">
+                    <p>我，<input type="text" id="playerIdInput" style="background:transparent;border:none;border-bottom:2px solid #3e2723;width:100px;text-align:center;font-weight:bold;color:#b71c1c;" placeholder="输入ID">，</p>
+                    <p>向虚空之主起誓，S11 赛季将贯彻意志，使用：</p>
+                    
+                    <img id="contractHeroImg" src="" style="width:80px; height:80px; object-fit:contain; border:1px solid #3e2723; background:#000;">
+                    <h3 id="contractHeroName" style="text-align:center; border-bottom:2px solid #3e2723; margin: 10px 0; color:#b71c1c;"></h3>
+                    
+                    <p>作为首发开荒职业。</p>
+                    <p style="font-size:0.8rem; margin-top:10px; font-style:italic; opacity:0.8;">
+                        “如有背叛，赛季不掉火，洗装备无T1，瓦库全炸！”
+                    </p>
+                    <div id="contractStamp" style="position:absolute;bottom:5px;right:5px;width:80px;height:80px;border:4px solid #b30000;border-radius:50%;color:#b30000;display:flex;align-items:center;justify-content:center;font-weight:bold;transform:rotate(-20deg) scale(2);opacity:0;transition:all 0.3s;">已画押</div>
+                </div>
+                <button class="game-btn btn-confirm" onclick="signContract()">签字画押</button>
+                <button class="game-btn" style="margin-top:10px; width:100%; background:#444;" onclick="closeModal('contractModal')">稍微等等...</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="gameModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-inner">
+                <h3 id="gameTitle" style="color:#fff; margin:0 0 5px 0;">挑战</h3>
+                <p id="gameInstruction" style="color:#aaa; font-size:0.9rem; margin:0 0 10px 0; min-height: 40px; display:flex; align-items:center; justify-content:center; text-align: center;"></p>
+                
+                <div class="game-area" id="gameArea">
+                    <div id="gameToast" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);padding:10px 20px;background:rgba(0,0,0,0.8);color:#fff;font-weight:bold;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:200;"></div>
+                </div>
+                
+                <div style="font-size: 0.8rem; color:#666; text-align:center;">通关以获得 1 枚代币</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. 数据配置 (路径已修改为 img/) ---
+        const basePath = "img/";
+
+        const heroes = [
+            { hero: "冰焰 吉玛", trait: "冰火融合", img: "冰焰 吉玛-冰火融合.webp", desc: "冰与火的交响，极致的元素爆发。" },
+            { hero: "冰焰 吉玛", trait: "冰结之心", img: "冰焰 吉玛-冰结之心.webp", desc: "绝对零度，掌控全场的控制力。" },
+            { hero: "冰焰 吉玛", trait: "欢愉之焰", img: "冰焰 吉玛-欢愉之焰.webp", desc: "烈火燎原，焚尽一切罪恶。" },
+            { hero: "光曜 罗莎", trait: "圣庭战车", img: "光曜 罗莎-圣庭战车.webp", desc: "圣光庇佑，无可阻挡的冲锋。" },
+            { hero: "光曜 罗莎", trait: "无垢之刃", img: "光曜 罗莎-无垢之刃.webp", desc: "纯净之力，斩断虚空的利刃。" },
+            { hero: "狂人 雷恩", trait: "怒火", img: "狂人 雷恩-怒火.webp", desc: "无尽怒火，最为纯粹的近战体验。" },
+            { hero: "狂人 雷恩", trait: "怒影", img: "狂人 雷恩-怒影.webp", desc: "祖灵相助，双倍的快乐。" },
+            { hero: "猫眼 艾瑞卡", trait: "电光猫影", img: "猫眼 艾瑞卡-电光猫影.webp", desc: "迅如闪电，虽然脆但真的快。" },
+            { hero: "猫眼 艾瑞卡", trait: "疾风追猎", img: "猫眼 艾瑞卡-疾风追猎.webp", desc: "风一样的女子，跑图的神。" },
+            { hero: "猫眼 艾瑞卡", trait: "寻仇之刺", img: "猫眼 艾瑞卡-寻仇之刺.webp", desc: "潜行背刺，致命一击。" },
+            { hero: "神谕者 希雅", trait: "渎神", img: "神谕者 希雅-渎神.webp", desc: "亵渎神明，掌控毁灭之力。" },
+            { hero: "神谕者 希雅", trait: "众神之化身", img: "神谕者 希雅-众神之化身.webp", desc: "神威降世，凡人退避。" },
+            { hero: "神谕者 希雅", trait: "众神之伟智", img: "神谕者 希雅-众神之伟智.webp", desc: "全知全能，法术机关枪。" },
+            { hero: "圣枪 卡里诺", trait: "荣光游侠", img: "圣枪 卡里诺-荣光游侠.webp", desc: "投射物专精，优雅的猎手。" },
+            { hero: "圣枪 卡里诺", trait: "战火狂徒", img: "圣枪 卡里诺-战火狂徒.webp", desc: "重火力覆盖，不仅是射击。" },
+            { hero: "圣枪 卡里诺", trait: "至暗掠影", img: "圣枪 卡里诺-至暗掠影.webp", desc: "霰弹喷子，贴脸输出爆炸。" },
+            { hero: "时空见证者 尤加", trait: "时空幻象", img: "时空见证者 尤加-时空幻象.webp", desc: "分身乏术？不，我有分身。" },
+            { hero: "时空见证者 尤加", trait: "时空流逝", img: "时空见证者 尤加-时空流逝.webp", desc: "时间是最大的敌人，Dot流派。" },
+            { hero: "逃脱者 宾", trait: "爆破新星", img: "逃脱者 宾-爆破新星.webp", desc: "艺术就是爆炸，满屏数字。" },
+            { hero: "逃脱者 宾", trait: "创想鬼才", img: "逃脱者 宾-创想鬼才.webp", desc: "机械与灵感的完美结合。" },
+            { hero: "汐语 赛琳娜", trait: "与海潮同歌", img: "汐语 赛琳娜-与海潮同歌.webp", desc: "聆听海的声音，泡沫轰炸。" },
+            { hero: "遗世魔灵 伊瑞斯", trait: "生长的微风", img: "遗世魔灵 伊瑞斯-生长的微风.webp", desc: "魔灵伙伴，共同成长。" },
+            { hero: "遗世魔灵 伊瑞斯", trait: "守望的暖风", img: "遗世魔灵 伊瑞斯-守望的暖风.webp", desc: "守护之力，坚不可摧。" },
+            { hero: "指挥官 莫托", trait: "冲锋征召", img: "指挥官 莫托-冲锋征召.webp", desc: "自爆卡车，智械冲锋。" },
+            { hero: "指挥官 莫托", trait: "号令征召", img: "指挥官 莫托-号令征召.webp", desc: "钢铁洪流，统御战场。" }
+        ];
+
+        const gameTerms = ["淘汰","借势","坚韧","势大力沉","藏巧于拙","审判","入静","大象无形","坚毅","灰烬装甲","清扫","聚能之击","舍命","火上浇油","势均力敌","星星之火","磐石","真实之焰","秘法","善始善终","生命通道","生存意志","敏锐","三思而动","世事无常","行色匆匆","一箭三雕","厚积薄发","狂风","亢奋","抵近射击","逃脱大师","伺机而动","合力","势如破竹"];
+        const distractionWords = ["苹果","桌子","心情","天气","因为","所以","但是","虽然","只要","如果","甚至","沙发","电视","冰箱","空调","洗衣机","电脑","手机","键盘","鼠标","耳机","音响","麦克风","显示器","打印机","路由器","吃饭","睡觉","打豆豆","奶茶","咖啡"];
+
+        // --- 2. 状态管理 ---
+        let state = {
+            tokens: 0,
+            difficulty: 1, 
+            spinning: false,
+            currentHero: null,
+            timerId: null,
+            animFrameId: null,
+            gameActive: false
+        };
+
+        const els = {
+            tokenCount: document.getElementById('tokenCount'),
+            diffDisplay: document.getElementById('diffDisplay'),
+            btnEarn: document.getElementById('btnEarn'),
+            btnReroll: document.getElementById('btnReroll'),
+            btnConfirm: document.getElementById('btnConfirm'),
+            reels: [document.getElementById('reel1'), document.getElementById('reel2'), document.getElementById('reel3')],
+            resultInfo: document.getElementById('resultInfo'),
+            resultTitle: document.getElementById('resultTitle'),
+            resultDesc: document.getElementById('resultDesc'),
+            resultImg: document.getElementById('resultImg'),
+            gameArea: document.getElementById('gameArea'),
+            gameTitle: document.getElementById('gameTitle'),
+            gameInstruction: document.getElementById('gameInstruction'),
+            gameToast: document.getElementById('gameToast')
+        };
+
+        // --- 3. UI 逻辑 ---
+        function updateUI() {
+            els.tokenCount.textContent = state.tokens;
+            els.diffDisplay.textContent = "Lv." + state.difficulty;
+            els.diffDisplay.style.color = state.difficulty > 3 ? '#ff5252' : '#ffc107';
+
+            if (state.tokens >= 1) {
+                els.btnEarn.disabled = true;
+                els.btnEarn.classList.remove('active');
+                els.btnEarn.innerHTML = "已拥有代币";
+                
+                els.btnReroll.disabled = state.spinning;
+                
+                if(state.currentHero && !state.spinning) {
+                    els.btnConfirm.disabled = false;
+                }
+            } else {
+                els.btnEarn.disabled = false;
+                els.btnEarn.classList.add('active');
+                els.btnEarn.innerHTML = "⚔️ 赚取 1 代币";
+                
+                els.btnReroll.disabled = true;
+                
+                if(state.currentHero && !state.spinning) {
+                    els.btnConfirm.disabled = false;
+                } else {
+                    els.btnConfirm.disabled = true;
+                }
+            }
+        }
+
+        // --- 4. 老虎机逻辑 (图片版) ---
+        function spinSlot() {
+            if (state.tokens < 1 || state.spinning) return;
+
+            state.tokens = 0;
+            state.spinning = true;
+            state.difficulty++; 
+            
+            els.btnReroll.disabled = true;
+            els.btnConfirm.disabled = true;
+            els.resultInfo.style.opacity = 0;
+            document.body.classList.add('spinning');
+            
+            updateUI(); 
+
+            let spins = 0;
+            const interval = setInterval(() => {
+                // 随机切换图片
+                els.reels.forEach(reel => {
+                    const randHero = heroes[Math.floor(Math.random() * heroes.length)];
+                    reel.innerHTML = `<img src="${basePath}${randHero.img}" class="slot-img">`;
+                });
+                spins++;
+                if (spins > 15) {
+                    clearInterval(interval);
+                    finalizeSpin();
+                }
+            }, 100);
+        }
+
+        function finalizeSpin() {
+            document.body.classList.remove('spinning');
+            state.spinning = false;
+            
+            const choice = heroes[Math.floor(Math.random() * heroes.length)];
+            state.currentHero = choice;
+
+            // 设置三个滚轮为同一张图片
+            const imgTag = `<img src="${basePath}${choice.img}" class="slot-img">`;
+            els.reels.forEach(reel => reel.innerHTML = imgTag);
+            
+            // 结果展示区
+            els.resultImg.src = basePath + choice.img;
+            els.resultImg.style.display = "block";
+            els.resultTitle.innerText = `${choice.hero} [${choice.trait}]`;
+            els.resultDesc.innerText = choice.desc;
+            els.resultInfo.style.opacity = 1;
+
+            updateUI(); 
+        }
+
+        // --- 5. 契约系统 (含截图) ---
+        function showContract() {
+            const input = document.getElementById('playerIdInput');
+            input.value = "";
+            input.style.display = 'inline-block';
+            
+            const oldSpan = document.getElementById('staticNameSpan');
+            if(oldSpan) oldSpan.remove();
+
+            // 设置契约内容
+            document.getElementById('contractHeroImg').src = basePath + state.currentHero.img;
+            document.getElementById('contractHeroName').innerText = 
+                `${state.currentHero.hero} - ${state.currentHero.trait}`;
+                
+            document.getElementById('contractStamp').style.opacity = 0;
+            document.getElementById('contractStamp').style.transform = "rotate(-20deg) scale(2)";
+            
+            document.getElementById('contractModal').classList.add('active');
+        }
+
+        function signContract() {
+            const input = document.getElementById('playerIdInput');
+            const name = input.value.trim() || "无名的流放者";
+            
+            // UI 替换：输入框变文本
+            input.style.display = 'none';
+            const span = document.createElement('span');
+            span.id = 'staticNameSpan';
+            span.innerText = name;
+            span.style.fontWeight = 'bold';
+            span.style.color = '#b71c1c';
+            span.style.borderBottom = '2px solid #3e2723';
+            input.parentNode.insertBefore(span, input);
+
+            // 盖章
+            const stamp = document.getElementById('contractStamp');
+            stamp.style.opacity = 0.8;
+            stamp.style.transform = "rotate(-20deg) scale(1)";
+            
+            // 延迟后执行截图下载
+            setTimeout(() => {
+                const element = document.getElementById("captureTarget");
+                
+                html2canvas(element, {
+                    backgroundColor: null, // 透明背景
+                    scale: 2 // 高清
+                }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = `S11_誓言_${name}.png`;
+                    link.href = canvas.toDataURL();
+                    link.click();
+                    alert("契约已生成并下载！");
+                    closeModal('contractModal');
+                });
+            }, 600);
+        }
+
+        // --- 6. 游戏系统 ---
+
+        function startMiniGame() {
+            if (state.tokens >= 1) return;
+            
+            document.getElementById('gameModal').classList.add('active');
+            state.gameActive = true;
+            
+            els.gameArea.innerHTML = '<div id="gameToast" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);padding:10px 20px;background:rgba(0,0,0,0.8);color:#fff;font-weight:bold;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:200;"></div>';
+            
+            const type = Math.floor(Math.random() * 3);
+            
+            if (type === 0) initGameWhackAMole();
+            else if (type === 1) initGameMemory(); 
+            else initGameColorReflex();
+        }
+
+        function showToast(msg, color) {
+            const t = document.getElementById('gameToast');
+            t.innerText = msg;
+            t.style.color = color;
+            t.style.opacity = 1;
+            setTimeout(() => t.style.opacity = 0, 1000);
+        }
+
+        function winGame() {
+            if(!state.gameActive) return;
+            state.gameActive = false;
+            if(state.timerId) clearInterval(state.timerId);
+            if(state.animFrameId) cancelAnimationFrame(state.animFrameId);
+            
+            showToast("挑战成功 +1 币", "#4caf50");
+            setTimeout(() => {
+                state.tokens = 1;
+                updateUI();
+                closeModal('gameModal');
+            }, 1000);
+        }
+
+        function failGame(msg) {
+            showToast(msg || "失败！", "#ff5252");
+            els.gameArea.style.transform = "translateX(5px)";
+            setTimeout(()=>els.gameArea.style.transform = "translateX(0)", 50);
+        }
+
+        // === 游戏 A: 捕捉初火 (平滑轨迹版) ===
+        function initGameWhackAMole() {
+            els.gameTitle.innerText = `Lv.${state.difficulty} 捕捉初火`;
+            els.gameInstruction.innerText = "初火正在四处飞舞，点击捕捉它！";
+            
+            const target = document.createElement('div');
+            target.className = 'moving-target';
+            // 使用相对路径
+            target.style.backgroundImage = "url('img/游戏1.ico')";
+            
+            // 大小：Lv1 = 45px (1.5倍), 随难度减少
+            const size = Math.max(20, 45 - ((state.difficulty-1) * 3)); 
+            target.style.width = size + 'px';
+            target.style.height = size + 'px';
+            
+            // 初始位置
+            let currentX = Math.random() * (els.gameArea.clientWidth - size);
+            let currentY = Math.random() * (els.gameArea.clientHeight - size);
+            
+            // 目标位置
+            let targetX = Math.random() * (els.gameArea.clientWidth - size);
+            let targetY = Math.random() * (els.gameArea.clientHeight - size);
+
+            // --- 速度调整：减半 ---
+            // 之前是 4 + (diff * 2)，现在改为 2 + diff
+            let speed = 2 + state.difficulty;
+
+            target.style.transform = `translate(${currentX}px, ${currentY}px)`;
+            
+            target.onmousedown = (e) => { e.stopPropagation(); winGame(); };
+            target.ontouchstart = (e) => { e.stopPropagation(); winGame(); };
+            
+            els.gameArea.appendChild(target);
+
+            // 动画循环
+            function animate() {
+                if(!state.gameActive) return;
+
+                // 计算当前点到目标点的距离
+                const dx = targetX - currentX;
+                const dy = targetY - currentY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                // 如果接近目标点，随机生成新的目标点
+                if (dist < speed) {
+                    targetX = Math.random() * (els.gameArea.clientWidth - size);
+                    targetY = Math.random() * (els.gameArea.clientHeight - size);
+                } else {
+                    // 向目标点移动
+                    currentX += (dx / dist) * speed;
+                    currentY += (dy / dist) * speed;
+                }
+
+                target.style.transform = `translate(${currentX}px, ${currentY}px)`;
+                state.animFrameId = requestAnimationFrame(animate);
+            }
+
+            state.animFrameId = requestAnimationFrame(animate);
+            
+            els.gameArea.onmousedown = (e) => {
+                if(e.target !== target) failGame("没点中！");
+            }
+        }
+
+        // === 游戏 B: 符文记忆 (随机6图版) ===
+        function initGameMemory() {
+            els.gameTitle.innerText = `Lv.${state.difficulty} 符文记忆`;
+            els.gameInstruction.innerText = "记忆装备出现的顺序。";
+            
+            // 使用相对路径
+            const legendaryPath = "img/";
+            
+            const legendaryFiles = [
+                "阿日斯兰.webp", "薄暮笼罩法袍.webp", "暴君的铁腕.webp", "暴君的凶焰.webp", "迸碎月光.webp", 
+                "避火义肢.webp", "冰封行径.webp", "冰火交融.webp", "不灭信仰.webp", "蝉锐.webp", 
+                "倒吊的半面.webp", "传奇战士护目镜.webp", "敞开心扉.webp", "独行者之靴.webp", "恶劫.webp", 
+                "飞鸟.webp", "追忆.webp", "追猎海妖之眼.webp", "掌中虚海.webp", "王事枯荣.webp", 
+                "玛格努斯的妒火.webp", "烈阳之拥.webp"
+            ];
+            
+            // 随机选取 6 个不同的图片作为本轮的“按钮”
+            const roundImages = [];
+            const tempFiles = [...legendaryFiles];
+            
+            for(let i=0; i<6; i++) {
+                if(tempFiles.length === 0) break;
+                const randIdx = Math.floor(Math.random() * tempFiles.length);
+                roundImages.push(tempFiles[randIdx]);
+                tempFiles.splice(randIdx, 1);
+            }
+
+            let sequence = [];
+            let playerSeq = [];
+            
+            // 数量公式：6 + (Lv-1)*4 -> Lv1=6, Lv2=10, Lv3=14
+            const seqLength = 6 + ((state.difficulty - 1) * 4);
+            
+            // 生成序列
+            for(let i=0; i<seqLength; i++) {
+                sequence.push(Math.floor(Math.random() * roundImages.length));
+            }
+
+            // 构建UI
+            let btnHtml = '';
+            roundImages.forEach((img, idx) => {
+                btnHtml += `
+                    <button class="game-btn" id="memBtn${idx}" style="min-width:auto; padding:2px; height:60px;" onclick="checkMemory(${idx})">
+                        <img src="${legendaryPath}${img}" style="width:100%; height:100%; object-fit:contain;">
+                    </button>
+                `;
+            });
+
+            els.gameArea.innerHTML += `
+                <div style="display:flex; flex-direction:column; height:100%; justify-content:center; padding:10px;">
+                    <div id="memStatus" style="color:#aaa; text-align:center; font-size:1.2rem; margin-bottom:20px;">记忆中 (${seqLength}步)...</div>
+                    <div id="memBtns" style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; pointer-events:none; opacity:0.5;">
+                        ${btnHtml}
+                    </div>
+                </div>
+            `;
+            
+            // 播放逻辑：点亮按钮本身
+            let playIdx = 0;
+            const playSpeed = Math.max(200, 450 - (state.difficulty-1) * 30); 
+
+            setTimeout(() => {
+                state.timerId = setInterval(() => {
+                    if(playIdx >= sequence.length) {
+                        clearInterval(state.timerId);
+                        document.getElementById('memStatus').innerText = "重演命运的轨迹！";
+                        document.getElementById('memStatus').style.color = "#4caf50";
+                        const btns = document.getElementById('memBtns');
+                        btns.style.pointerEvents = 'all';
+                        btns.style.opacity = '1';
+                        return;
+                    }
+                    
+                    const targetId = sequence[playIdx];
+                    const el = document.getElementById('memBtn'+targetId);
+                    
+                    // 闪烁效果
+                    el.style.transform = "scale(1.1)";
+                    el.style.borderColor = "#fff";
+                    el.style.boxShadow = "0 0 15px #ff6f00";
+                    el.style.zIndex = "10";
+                    
+                    setTimeout(() => {
+                        el.style.transform = "scale(1)";
+                        el.style.borderColor = "#6d4c41"; // 恢复原来的边框颜色
+                        el.style.boxShadow = "0 4px 0 #271c19"; // 恢复原来的阴影
+                        el.style.zIndex = "auto";
+                    }, 200);
+                    
+                    playIdx++;
+                }, playSpeed);
+            }, 800);
+
+            window.checkMemory = (val) => {
+                if(!state.gameActive) return;
+                
+                const currentStep = playerSeq.length;
+                if(val === sequence[currentStep]) {
+                    playerSeq.push(val);
+                    
+                    // 点击反馈
+                    const el = document.getElementById('memBtn'+val);
+                    el.style.borderColor = "#00ff00";
+                    setTimeout(() => el.style.borderColor = "#6d4c41", 100);
+
+                    if(playerSeq.length === sequence.length) {
+                        winGame();
+                    }
+                } else {
+                    failGame("顺序错误！重置...");
+                    state.gameActive = false; 
+                    setTimeout(() => {
+                        state.gameActive = true;
+                        startMiniGame(); 
+                    }, 1000);
+                }
+            };
+        }
+
+        // === 游戏 C: 神经连接 ===
+        function initGameColorReflex() {
+            els.gameTitle.innerText = `Lv.${state.difficulty} 神经连接`;
+            
+            const colors = [
+                { name: '红色', hex: '#ff5252' },
+                { name: '绿色', hex: '#69f0ae' },
+                { name: '蓝色', hex: '#448aff' },
+                { name: '橙色', hex: '#ffab40' },
+                { name: '紫色', hex: '#e040fb' }
+            ];
+
+            const targetColorObj = colors[Math.floor(Math.random() * colors.length)];
+            
+            els.gameInstruction.innerHTML = 
+                `点击条件：<span style="color:${targetColorObj.hex};font-weight:bold;">${targetColorObj.name}</span> + <span style="border:1px solid #777; padding:0 2px;">游戏术语</span>`;
+
+            const box = document.createElement('div');
+            box.style.display = 'flex';
+            box.style.flexDirection = 'column';
+            box.style.justifyContent = 'center';
+            box.style.alignItems = 'center';
+            box.style.height = '100%';
+            
+            const textEl = document.createElement('div');
+            textEl.style.fontSize = '3rem';
+            textEl.style.fontWeight = 'bold';
+            textEl.innerText = "准备...";
+            
+            box.appendChild(textEl);
+            els.gameArea.appendChild(box);
+
+            let currentHex = "";
+            let isGameTerm = false;
+
+            els.gameArea.onmousedown = (e) => {
+                if(!state.gameActive) return;
+                e.preventDefault();
+                if(currentHex === targetColorObj.hex && isGameTerm) {
+                    winGame();
+                } else {
+                    let reason = "";
+                    if(currentHex !== targetColorObj.hex) reason = "颜色不对！";
+                    else if(!isGameTerm) reason = "非游戏术语！";
+                    failGame(reason);
+                }
+            };
+
+            // 速度：Lv1 = 300ms
+            let speed = Math.max(100, 300 - ((state.difficulty-1) * 20));
+
+            const change = () => {
+                if(!state.gameActive) return;
+                
+                const rng = Math.random();
+                let colorObj, word;
+
+                if(rng < 0.25) {
+                    colorObj = targetColorObj;
+                    word = gameTerms[Math.floor(Math.random() * gameTerms.length)];
+                    isGameTerm = true;
+                } else if (rng < 0.5) {
+                    colorObj = targetColorObj;
+                    word = distractionWords[Math.floor(Math.random() * distractionWords.length)];
+                    isGameTerm = false;
+                } else {
+                    let otherColors = colors.filter(c => c.hex !== targetColorObj.hex);
+                    colorObj = otherColors[Math.floor(Math.random() * otherColors.length)];
+                    if(Math.random() > 0.5) {
+                        word = gameTerms[Math.floor(Math.random() * gameTerms.length)];
+                        isGameTerm = true;
+                    } else {
+                        word = distractionWords[Math.floor(Math.random() * distractionWords.length)];
+                        isGameTerm = false;
+                    }
+                }
+                
+                textEl.innerText = word;
+                textEl.style.color = colorObj.hex;
+                currentHex = colorObj.hex;
+            };
+
+            setTimeout(() => {
+                change();
+                state.timerId = setInterval(change, speed);
+            }, 800);
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+            state.gameActive = false;
+            if(state.timerId) clearInterval(state.timerId);
+            if(state.animFrameId) cancelAnimationFrame(state.animFrameId);
+            els.gameArea.onclick = null;
+            els.gameArea.onmousedown = null;
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>
