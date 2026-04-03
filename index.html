@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>火炬之光：无限 SS11 命运罗盘</title>
+    <title>火炬之光：无限 SS12 明月狂想曲</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
@@ -20,7 +20,7 @@
             background-color: var(--bg-dark);
             
             /* --- 路径修改：使用相对路径 img/ --- */
-            background-image: url('img/背景.jpg'); 
+            background-image: url('img/QQ图片20260403155908.png'); 
             
             background-size: cover;
             background-position: center;
@@ -34,30 +34,6 @@
             overflow-x: hidden;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
-        }
-
-        /* 顶部 Logo 区域 */
-        .logo-area {
-            width: 100%;
-            max-width: 600px;
-            margin-top: 20px;
-            text-align: center;
-        }
-        
-        .season-logo {
-            width: auto;
-            max-width: 120px;
-            height: auto;
-            /* --- 路径修改 --- */
-            content: url('img/logo.ico');
-            filter: drop-shadow(0 0 10px rgba(255, 111, 0, 0.5));
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
         }
 
         /* 状态栏 */
@@ -344,10 +320,6 @@
 </head>
 <body>
 
-    <div class="logo-area">
-        <img class="season-logo" src="" alt="S11 Logo">
-    </div>
-
     <div class="status-bar-container">
         <div class="status-item">
             <span>😈 痛苦等级:</span>
@@ -389,7 +361,7 @@
     <div class="modal-overlay" id="contractModal">
         <div class="modal-content">
             <div class="modal-inner">
-                <h2 style="color:var(--ember-gold); margin-top:0; text-align:center;">S11 灵魂契约</h2>
+                <h2 style="color:var(--ember-gold); margin-top:0; text-align:center;">S12 灵魂契约</h2>
                 <div class="contract-paper" id="captureTarget">
                     <p>我，<input type="text" id="playerIdInput" style="background:transparent;border:none;border-bottom:2px solid #3e2723;width:100px;text-align:center;font-weight:bold;color:#b71c1c;" placeholder="输入ID">，</p>
                     <p>向虚空之主起誓，S11 赛季将贯彻意志，使用：</p>
@@ -453,7 +425,8 @@
             { hero: "遗世魔灵 伊瑞斯", trait: "生长的微风", img: "遗世魔灵 伊瑞斯-生长的微风.webp", desc: "魔灵伙伴，共同成长。" },
             { hero: "遗世魔灵 伊瑞斯", trait: "守望的暖风", img: "遗世魔灵 伊瑞斯-守望的暖风.webp", desc: "守护之力，坚不可摧。" },
             { hero: "指挥官 莫托", trait: "冲锋征召", img: "指挥官 莫托-冲锋征召.webp", desc: "自爆卡车，智械冲锋。" },
-            { hero: "指挥官 莫托", trait: "号令征召", img: "指挥官 莫托-号令征召.webp", desc: "钢铁洪流，统御战场。" }
+            { hero: "指挥官 莫托", trait: "号令征召", img: "指挥官 莫托-号令征召.webp", desc: "钢铁洪流，统御战场。" },
+            { hero: "药剂师 赛琪", trait: "甘草前调", img: "药剂师 赛琪-甘草前调.jpeg", desc: "草药的力量，治愈与伤害的完美平衡。" }
         ];
 
         const gameTerms = ["淘汰","借势","坚韧","势大力沉","藏巧于拙","审判","入静","大象无形","坚毅","灰烬装甲","清扫","聚能之击","舍命","火上浇油","势均力敌","星星之火","磐石","真实之焰","秘法","善始善终","生命通道","生存意志","敏锐","三思而动","世事无常","行色匆匆","一箭三雕","厚积薄发","狂风","亢奋","抵近射击","逃脱大师","伺机而动","合力","势如破竹"];
@@ -502,6 +475,8 @@
                 
                 if(state.currentHero && !state.spinning) {
                     els.btnConfirm.disabled = false;
+                } else {
+                    els.btnConfirm.disabled = true;
                 }
             } else {
                 els.btnEarn.disabled = false;
@@ -765,8 +740,8 @@
             let sequence = [];
             let playerSeq = [];
             
-            // 数量公式：6 + (Lv-1)*4 -> Lv1=6, Lv2=10, Lv3=14
-            const seqLength = 6 + ((state.difficulty - 1) * 4);
+            // 数量公式：3 + (Lv-1)*2 -> Lv1=3, Lv2=5, Lv3=7
+            const seqLength = 3 + ((state.difficulty - 1) * 2);
             
             // 生成序列
             for(let i=0; i<seqLength; i++) {
