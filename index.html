@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>火炬之光：无限 SS12 明月狂想曲</title>
+    <title>火炬之光：无限 SS14 塔罗斯困兽</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
@@ -20,7 +20,7 @@
             background-color: var(--bg-dark);
             
             /* --- 路径修改：使用相对路径 img/ --- */
-            background-image: url('img/QQ图片20260403155908.png'); 
+            background-image: url('img/塔罗斯困兽-01.webp'); 
             
             background-size: cover;
             background-position: center;
@@ -342,7 +342,7 @@
         <div class="result-info" id="resultInfo">
             <img id="resultImg" class="result-img-preview" src="" style="display:none;">
             <div class="result-title" id="resultTitle"></div>
-            <div class="result-desc" id="resultDesc">命运的齿轮等待转动...<br>请先赚取一枚代币。</div>
+            <div class="result-desc" id="resultDesc">命运的齿轮等待转动...<br>首次逆天改命免费，放手一搏吧！</div>
         </div>
     </div>
 
@@ -361,10 +361,10 @@
     <div class="modal-overlay" id="contractModal">
         <div class="modal-content">
             <div class="modal-inner">
-                <h2 style="color:var(--ember-gold); margin-top:0; text-align:center;">S12 灵魂契约</h2>
+                <h2 style="color:var(--ember-gold); margin-top:0; text-align:center;">SS14 灵魂契约</h2>
                 <div class="contract-paper" id="captureTarget">
                     <p>我，<input type="text" id="playerIdInput" style="background:transparent;border:none;border-bottom:2px solid #3e2723;width:100px;text-align:center;font-weight:bold;color:#b71c1c;" placeholder="输入ID">，</p>
-                    <p>向虚空之主起誓，S11 赛季将贯彻意志，使用：</p>
+                    <p>向虚空之主起誓，SS14 赛季将贯彻意志，使用：</p>
                     
                     <img id="contractHeroImg" src="" style="width:80px; height:80px; object-fit:contain; border:1px solid #3e2723; background:#000;">
                     <h3 id="contractHeroName" style="text-align:center; border-bottom:2px solid #3e2723; margin: 10px 0; color:#b71c1c;"></h3>
@@ -426,7 +426,9 @@
             { hero: "遗世魔灵 伊瑞斯", trait: "守望的暖风", img: "遗世魔灵 伊瑞斯-守望的暖风.webp", desc: "守护之力，坚不可摧。" },
             { hero: "指挥官 莫托", trait: "冲锋征召", img: "指挥官 莫托-冲锋征召.webp", desc: "自爆卡车，智械冲锋。" },
             { hero: "指挥官 莫托", trait: "号令征召", img: "指挥官 莫托-号令征召.webp", desc: "钢铁洪流，统御战场。" },
-            { hero: "药剂师 赛琪", trait: "甘草前调", img: "药剂师 赛琪-甘草前调.jpeg", desc: "草药的力量，治愈与伤害的完美平衡。" }
+            { hero: "药剂师 赛琪", trait: "甘草前调", img: "药剂师 赛琪-甘草前调.jpeg", desc: "草药的力量，治愈与伤害的完美平衡。" },
+            { hero: "汐语 赛琳娜", trait: "与深海共舞", img: "汐语 赛琳娜 与深海共舞.webp", desc: "深海之舞，潮汐之力的终极形态。" },
+            { hero: "时空见证者 尤加", trait: "最终之人", img: "时空见证者 尤加 最终之人.webp", desc: "时之尽头，见证一切的终局之人。" }
         ];
 
         const gameTerms = ["淘汰","借势","坚韧","势大力沉","藏巧于拙","审判","入静","大象无形","坚毅","灰烬装甲","清扫","聚能之击","舍命","火上浇油","势均力敌","星星之火","磐石","真实之焰","秘法","善始善终","生命通道","生存意志","敏锐","三思而动","世事无常","行色匆匆","一箭三雕","厚积薄发","狂风","亢奋","抵近射击","逃脱大师","伺机而动","合力","势如破竹"];
@@ -440,7 +442,8 @@
             currentHero: null,
             timerId: null,
             animFrameId: null,
-            gameActive: false
+            gameActive: false,
+            firstSpin: true
         };
 
         const els = {
@@ -466,38 +469,45 @@
             els.diffDisplay.textContent = "Lv." + state.difficulty;
             els.diffDisplay.style.color = state.difficulty > 3 ? '#ff5252' : '#ffc107';
 
+            // 抽奖按钮：首次免费 or 有代币即可
+            const canDraw = state.firstSpin || state.tokens >= 1;
+            els.btnReroll.disabled = !canDraw || state.spinning;
+            els.btnReroll.innerHTML = state.firstSpin ? "↻ 逆天改命 (首次免费)" : "↻ 逆天改命 (1币)";
+
+            // 赚取按钮
             if (state.tokens >= 1) {
                 els.btnEarn.disabled = true;
                 els.btnEarn.classList.remove('active');
                 els.btnEarn.innerHTML = "已拥有代币";
-                
-                els.btnReroll.disabled = state.spinning;
-                
-                if(state.currentHero && !state.spinning) {
-                    els.btnConfirm.disabled = false;
-                } else {
-                    els.btnConfirm.disabled = true;
-                }
+            } else if (state.firstSpin) {
+                els.btnEarn.disabled = false;
+                els.btnEarn.classList.add('active');
+                els.btnEarn.innerHTML = "⚔️ 赚取代币 (可选)";
             } else {
                 els.btnEarn.disabled = false;
                 els.btnEarn.classList.add('active');
                 els.btnEarn.innerHTML = "⚔️ 赚取 1 代币";
-                
-                els.btnReroll.disabled = true;
-                
-                if(state.currentHero && !state.spinning) {
-                    els.btnConfirm.disabled = false;
-                } else {
-                    els.btnConfirm.disabled = true;
-                }
+            }
+
+            // 确认按钮
+            if(state.currentHero && !state.spinning) {
+                els.btnConfirm.disabled = false;
+            } else {
+                els.btnConfirm.disabled = true;
             }
         }
 
         // --- 4. 老虎机逻辑 (图片版) ---
         function spinSlot() {
-            if (state.tokens < 1 || state.spinning) return;
+            const needToken = !state.firstSpin;
+            if (state.spinning) return;
+            if (needToken && state.tokens < 1) return;
 
-            state.tokens = 0;
+            // 非首次才消耗代币
+            if (needToken) {
+                state.tokens = 0;
+            }
+            state.firstSpin = false;
             state.spinning = true;
             state.difficulty++; 
             
@@ -592,7 +602,7 @@
                     scale: 2 // 高清
                 }).then(canvas => {
                     const link = document.createElement('a');
-                    link.download = `S11_誓言_${name}.png`;
+                    link.download = `SS14_誓言_${name}.png`;
                     link.href = canvas.toDataURL();
                     link.click();
                     alert("契约已生成并下载！");
